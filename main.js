@@ -1,4 +1,5 @@
 import fetch from "node-fetch";
+import { argv } from "process";
 import readline from "readline";
 
 const TAG_LEVEL = "Lvl";
@@ -26,51 +27,80 @@ function getParsedData(responseText) {
   const exColIndex = rows[0].c.findIndex((el) => el?.v == TAG_EXAMPLE);
   const examples = rows.slice(1).map((row) => row.c[exColIndex]?.v);
 
+  // return pack
   return { levels, words, definitions, examples };
 }
 
-function trainer({ levels, words, definitions, examples }) {
-  console.log("I say the definition and you type the corresponding word");
-  console.log("Let's go!\n");
+function getLineObject({ levels, words, definitions, examples }, wordIndex) {
+  let word = words[wordIndex];
+  let level = levels[wordIndex];
+  let definition = definitions[wordIndex];
+  let example = examples[wordIndex];
 
+  return { word, level, definition, example };
+}
+
+function checkAnswer(answer, expectedWord, example) {
+  const isCorrect =
+    answer?.toLocaleLowerCase() === expectedWord?.toLocaleLowerCase();
+
+  if (isCorrect) {
+    console.log("\x1b[32m%s\x1b[0m", "CORRECT");
+  } else {
+    console.log("\x1b[31m%s\x1b[0m", "WRONG");
+    console.log("It was");
+    console.log(expectedWord);
+  }
+
+  if (example) {
+    console.log("Examples:");
+    console.log(example);
+  }
+}
+
+function askQuestion(pack) {
+  const wordIndex = Math.floor(Math.random() * pack.words.length);
+  let question = getLineObject(pack, wordIndex);
+
+  console.log("\n");
+  console.log(question.definition, question.level ? `(${question.level})` : "");
+
+  return question;
+}
+
+function runInOut(handler) {
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
     terminal: false,
   });
 
-  let wordIndex = Math.floor(Math.random() * words.length);
-  let word = words[wordIndex];
-  let level = levels[wordIndex];
-  let definition = definitions[wordIndex];
-  let example = examples[wordIndex];
+  rl.on("line", handler);
+}
 
-  console.log(definition, level ? `(${level})` : "");
+function randomTrainer(pack) {
+  console.log("HELLO, I AM RANDOM TRAINER\n");
+  console.log("I say the definition and you type the corresponding word");
+  console.log("Let's go!\n");
 
-  rl.on("line", function (line) {
-    const isCorrect = line?.toLocaleLowerCase() === word?.toLocaleLowerCase();
+  let question = askQuestion(pack);
 
-    if (isCorrect) {
-      console.log("\x1b[32m%s\x1b[0m", "CORRECT");
-    } else {
-      console.log("\x1b[31m%s\x1b[0m", "WRONG");
-      console.log("It was");
-      console.log(word);
-    }
+  runInOut((answer) => {
+    checkAnswer(answer, question.word, question.example);
+    question = askQuestion(pack);
+  });
+}
 
-    if (example) {
-      console.log("Examples:");
-      console.log(example);
-    }
+function courseTrainer(pack) {
+  console.log("HELLO, I AM COURSE TRAINER\n");
+  console.log("I say the definition and you type the corresponding word");
+  console.log("Let's go!\n");
 
-    wordIndex = Math.floor(Math.random() * words.length);
-    word = words[wordIndex];
-    level = levels[wordIndex];
-    definition = definitions[wordIndex];
-    example = examples[wordIndex];
+  let question = askQuestion(pack);
 
-    console.log("\n");
-    console.log(definition, level ? `(${level})` : "");
+  runInOut((answer) => {
+    checkAnswer(answer, question.word, question.example);
+    question = askQuestion(pack);
   });
 }
 
@@ -83,4 +113,13 @@ async function go(trainer) {
   trainer(parsed);
 }
 
-go(trainer);
+const map = new Map([
+  ["default", courseTrainer],
+  ["random", randomTrainer],
+  ["course", courseTrainer],
+]);
+
+const enteredStrategy = argv[2] || "default";
+const concreteTrainer = map.get(enteredStrategy);
+
+go(concreteTrainer);
