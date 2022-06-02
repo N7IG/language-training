@@ -15,29 +15,26 @@ function getParsedData(responseText) {
   const table = jsonData.table;
   const rows = table.rows;
 
-  const lvlColIndex = rows[0].c.findIndex((el) => el?.v == TAG_LEVEL);
-  const levels = rows.slice(1).map((row) => row.c[lvlColIndex]?.v);
+  const tableHeadRowInfo = rows[0].c;
+  const tableDataRows = rows.slice(1);
 
-  const wordColIndex = rows[0].c.findIndex((el) => el?.v == TAG_WORD);
-  const words = rows.slice(1).map((row) => row.c[wordColIndex]?.v);
+  const lvlColIndex = tableHeadRowInfo.findIndex((el) => el?.v === TAG_LEVEL);
+  const wordColIndex = tableHeadRowInfo.findIndex((el) => el?.v === TAG_WORD);
+  const defColIndex = tableHeadRowInfo.findIndex(
+    (el) => el?.v === TAG_DEFINITION
+  );
+  const exColIndex = tableHeadRowInfo.findIndex((el) => el?.v === TAG_EXAMPLE);
 
-  const defColIndex = rows[0].c.findIndex((el) => el?.v == TAG_DEFINITION);
-  const definitions = rows.slice(1).map((row) => row.c[defColIndex]?.v);
+  const unzippedDataRows = tableDataRows.map((cEl) =>
+    cEl.c.map((vEl) => vEl?.v)
+  );
 
-  const exColIndex = rows[0].c.findIndex((el) => el?.v == TAG_EXAMPLE);
-  const examples = rows.slice(1).map((row) => row.c[exColIndex]?.v);
-
-  // return pack
-  return { levels, words, definitions, examples };
-}
-
-function getLineObject({ levels, words, definitions, examples }, wordIndex) {
-  let word = words[wordIndex];
-  let level = levels[wordIndex];
-  let definition = definitions[wordIndex];
-  let example = examples[wordIndex];
-
-  return { word, level, definition, example };
+  return unzippedDataRows.map((row) => ({
+    level: row[lvlColIndex],
+    word: row[wordColIndex],
+    definition: row[defColIndex],
+    example: row[exColIndex],
+  }));
 }
 
 function checkAnswer(answer, expectedWord, example) {
@@ -56,16 +53,22 @@ function checkAnswer(answer, expectedWord, example) {
     console.log("Examples:");
     console.log(example);
   }
+
+  return isCorrect;
+}
+
+function askRandomQuestion(packArray) {
+  const wordIndex = Math.floor(Math.random() * packArray.length);
+  let pack = packArray[wordIndex];
+
+  askQuestion(pack);
+
+  return pack;
 }
 
 function askQuestion(pack) {
-  const wordIndex = Math.floor(Math.random() * pack.words.length);
-  let question = getLineObject(pack, wordIndex);
-
   console.log("\n");
-  console.log(question.definition, question.level ? `(${question.level})` : "");
-
-  return question;
+  console.log(pack.definition, pack.level ? `(${pack.level})` : "");
 }
 
 function runInOut(handler) {
@@ -78,39 +81,96 @@ function runInOut(handler) {
   rl.on("line", handler);
 }
 
-function randomTrainer(pack) {
+function randomTrainer(packArray) {
   console.log("HELLO, I AM RANDOM TRAINER\n");
   console.log("I say the definition and you type the corresponding word");
   console.log("Let's go!\n");
 
-  let question = askQuestion(pack);
+  let question = askRandomQuestion(packArray);
 
   runInOut((answer) => {
     checkAnswer(answer, question.word, question.example);
-    question = askQuestion(pack);
+    question = askRandomQuestion(packArray);
   });
 }
 
-function courseTrainer(pack) {
+function wasLastNCorrect(history, n) {
+  return getNumberOfLastCorrectAnswers(history) >= n;
+}
+
+function getNumberOfLastCorrectAnswers(history) {
+  return history.length - 1 - history.lastIndexOf(false);
+}
+
+function getLeastCorrectRepeated(packArray) {
+  const historyLengths = packArray.map((pack) =>
+    getNumberOfLastCorrectAnswers(pack.history)
+  );
+  const minHistoryLength = Math.min(...historyLengths);
+
+  return packArray.filter(
+    (pack) => getNumberOfLastCorrectAnswers(pack.history) === minHistoryLength
+  );
+}
+
+function getLatestWordExcluded(packArray, latestPack) {
+  return packArray.length > 1
+    ? packArray.filter(
+        (pack) =>
+          pack.word !== latestPack.word &&
+          pack.definition !== latestPack.definition
+      )
+    : packArray;
+}
+
+function getLimit(pack, correctLimit, mistakeLimit = 5) {
+  return pack.history.includes(false)
+    ? Math.min(
+        mistakeLimit + pack.history.filter((v) => v === false).length,
+        mistakeLimit
+      )
+    : correctLimit;
+}
+
+function courseTrainer(packArray, eachWordShouldBeRepeatedTimes = 2) {
   console.log("HELLO, I AM COURSE TRAINER\n");
   console.log("I say the definition and you type the corresponding word");
   console.log("Let's go!\n");
 
-  let question = askQuestion(pack);
+  let wordsToTest = packArray.map((el) => ({ ...el, history: [] }));
+
+  let question = askRandomQuestion(wordsToTest);
 
   runInOut((answer) => {
-    checkAnswer(answer, question.word, question.example);
-    question = askQuestion(pack);
+    const isCorrect = checkAnswer(answer, question.word, question.example);
+    question.history.push(isCorrect);
+
+    wordsToTest = wordsToTest.filter(
+      (pack) =>
+        !wasLastNCorrect(
+          pack.history,
+          getLimit(pack, eachWordShouldBeRepeatedTimes)
+        )
+    );
+
+    if (!wordsToTest.length) {
+      console.log("\nCongratulations!\n");
+      process.exit();
+    }
+
+    question = askRandomQuestion(
+      getLatestWordExcluded(getLeastCorrectRepeated(wordsToTest), question)
+    );
   });
 }
 
-async function go(trainer) {
+async function go(trainer, range) {
   const response = await fetch(DOWNLOAD_URL);
   const data = await response.text();
 
   const parsed = getParsedData(data);
 
-  trainer(parsed);
+  trainer(parsed.slice(...range));
 }
 
 const map = new Map([
@@ -119,7 +179,9 @@ const map = new Map([
   ["course", courseTrainer],
 ]);
 
-const enteredStrategy = argv[2] || "default";
+const enteredStrategy = argv[4] || "default";
+const range = [Number(argv[2]) || 0, Number(argv[3]) || Infinity];
+
 const concreteTrainer = map.get(enteredStrategy);
 
-go(concreteTrainer);
+go(concreteTrainer, range);
