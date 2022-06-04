@@ -117,7 +117,10 @@ function showResults(isCorrect, question) {
 }
 
 function checkResults(answer, question) {
-  return answer?.toLocaleLowerCase() === question.word?.toLocaleLowerCase();
+  return (
+    answer?.toLocaleLowerCase().trim() ===
+    question.word?.toLocaleLowerCase().trim()
+  );
 }
 
 function askRandomQuestion(table = TABLE) {
