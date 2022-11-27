@@ -16,8 +16,18 @@ body {
   align-items: center;
 }
 
-.translate-logo {
+.title {
+  font-weight: bold;
   font-size: 2rem;
+}
+
+.translate-logo {
+  font-size: 1.5rem;
+}
+
+.center {
+  max-width: 700px;
+  margin: auto;
 }
 
 .input-container {
@@ -28,7 +38,7 @@ body {
 .answer-input {
   height: 2rem;
   width: 100%;
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-family: "Roboto", sans-serif;
   padding: 0.5rem;
 }
@@ -36,26 +46,39 @@ body {
 .each-words {
   height: 2rem;
   width: 100%;
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-family: "Roboto", sans-serif;
   padding: 0.5rem;
 }
 
 button {
   margin-top: 1rem;
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-family: "Roboto", sans-serif;
   width: 100%;
+
+  border: none;
+  line-height: 3rem;
+  border-radius: 6px;
+  background-color: #5db7ffcc;
+  cursor: pointer;
+  color: white;
 }
 
 .page1 {
-  font-size: 2rem;
+  font-size: 1.5rem;
+}
+
+.def {
+  font-weight: bold;
+  font-size: 2.5rem;
+  text-align: center;
 }
 
 .question,
 .results {
   margin-bottom: 1rem;
-  font-size: 2rem;
+  font-size: 1.5rem;
 }
 
 .status {
@@ -63,7 +86,7 @@ button {
 }
 
 .range {
-  font-size: 2rem;
+  font-size: 1.5rem;
   width: 100%;
   margin-bottom: 1rem;
 }
@@ -76,6 +99,6 @@ button {
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 2rem;
+  font-size: 1.5rem;
   height: 20rem;
 }

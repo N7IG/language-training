@@ -100,9 +100,9 @@ function clearInput() {
 }
 
 function showQuestion(question) {
-  QUESTION.innerHTML = `<div>${question.history.map((a) =>
-    a ? "+" : "-"
-  )}</div> <div>${question.definition}</div>`;
+  QUESTION.innerHTML = `<div class="history">${question.history
+    .map((a) => (a ? "+" : "-"))
+    .join(" ")}</div> <div class="def">${question.definition}</div>`;
 }
 
 function showResults(isCorrect, question) {

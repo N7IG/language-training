@@ -17,79 +17,81 @@
     <title>English</title>
   </head>
   <body>
-    <div class="page1" style="display: block">
-      <div>Pick Settings</div>
-      <br />
-      Trainer:
-      <br />
-      <input
-        type="radio"
-        id="contactChoice1"
-        name="contact"
-        value="random"
-        onchange="randomPicked()"
-      />
-      <label for="contactChoice1">Random</label>
-      <br />
-      <input
-        type="radio"
-        id="contactChoice2"
-        name="contact"
-        value="course"
-        checked="checked"
-        onchange="coursePicked()"
-      />
-      <label for="contactChoice2">Course</label>
-      <br />
-      <br />
-      Range:
-      <br />
-      <div>
-        <label class="min-label" for="min">Min: </label
-        ><input
-          type="range"
-          class="range range-min"
-          name="min"
-          min="0"
-          max="100"
-          value="0"
-          onchange="minChange()"
-        />
-      </div>
-
-      <div>
-        <label class="max-label" for="max">Max: </label>
+    <div class="center">
+      <div class="page1" style="display: block">
+        <div class="title">Pick Settings</div>
+        <br />
+        Trainer:
+        <br />
         <input
-          type="range"
-          class="range range-max"
-          name="max"
-          min="0"
-          max="100"
-          value="100"
-          onchange="maxChange()"
+          type="radio"
+          id="contactChoice1"
+          name="contact"
+          value="random"
+          onchange="randomPicked()"
         />
-      </div>
-
-      <div>
-        RepeatedTimes:
-        <div class="input-container">
-          <input class="each-words" type="text" value="2" />
+        <label for="contactChoice1">Random</label>
+        <br />
+        <input
+          type="radio"
+          id="contactChoice2"
+          name="contact"
+          value="course"
+          checked="checked"
+          onchange="coursePicked()"
+        />
+        <label for="contactChoice2">Course</label>
+        <br />
+        <br />
+        Range:
+        <br />
+        <div>
+          <label class="min-label" for="min">Min: </label
+          ><input
+            type="range"
+            class="range range-min"
+            name="min"
+            min="0"
+            max="100"
+            value="0"
+            onchange="minChange()"
+          />
         </div>
-      </div>
 
-      <button onclick="settingsPicked(1)">Go</button>
-    </div>
-    <div class="page2" style="display: none">
-      <div class="translate-logo-container">
-        <div class="translate-logo">Переведи</div>
+        <div>
+          <label class="max-label" for="max">Max: </label>
+          <input
+            type="range"
+            class="range range-max"
+            name="max"
+            min="0"
+            max="100"
+            value="100"
+            onchange="maxChange()"
+          />
+        </div>
+
+        <div>
+          RepeatedTimes:
+          <div class="input-container">
+            <input class="each-words" type="text" value="2" />
+          </div>
+        </div>
+
+        <button onclick="settingsPicked(1)">Next</button>
       </div>
-      <div class="results"></div>
-      <hr />
-      <div class="question"></div>
-      <div class="input-container">
-        <input class="answer-input" type="text" />
+      <div class="page2" style="display: none">
+        <div class="translate-logo-container">
+          <div class="translate-logo title">Переведи</div>
+        </div>
+        <div class="results"></div>
+        <hr />
+        <div class="question"></div>
+        <div class="input-container">
+          <input class="answer-input" type="text" />
+        </div>
+        <button onclick="clickHandler()">Next</button>
       </div>
-      <button onclick="clickHandler()">Go</button>
     </div>
   </body>
 </html>
